@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  api:
+    container_name: elasticsearch-api
+    build:
+      context: .
+      dockerfile: go-app/tools/development/Dockerfile
+    working_dir: /usr/src/app
+    environment:
+      - HOME_DIR=/usr/src/app
+      - CGO_ENABLED=0
+    volumes:
+      - ./go-app:/usr/src/app
+      - .go:/go
+    ports:
+      - 8080:8080
+    # depends_on:
+    #   - elasticsearch
+
+  # elasticsearch:
+  #   image: elasticsearch:7.12.0
+  #   ports:
+  #     - 9200:9200
+  #     - 9300:9300
+  #   environment:
+  #     - discovery.type=single-node

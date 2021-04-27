@@ -1,0 +1,8 @@
+#!/bin/sh
+
+CompileDaemon \
+    -build="go build -o $APP_DIR/build/service_bin $APP_DIR/cmd/main.go" \
+    -directory="./cmd" \
+    -directory="./internal" \
+    -directory="./tools" \
+    -command="./build/service_bin"
