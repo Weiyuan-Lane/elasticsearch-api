@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -11,18 +12,16 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/weiyuan-lane/elasticsearch-api/go-app/internal/utils/config"
+	"github.com/weiyuan-lane/elasticsearch-api/go-app/internal/utils/elasticsearchclient"
 	"github.com/weiyuan-lane/elasticsearch-api/go-app/internal/utils/logger"
 )
 
-func YourHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Gorilla!\n"))
-}
-
-func Init(appConfig config.ApplicationConfig) {
+func Init(appConfig config.ApplicationConfig, esClient elasticsearchclient.ElasticSearchClient) {
 	server := HttpServer{
 		Logger:                  appConfig.Logger,
-		Port:                    "8080",
-		GracefulShutdownSeconds: 30,
+		Port:                    strconv.Itoa(appConfig.HTTPPort),
+		GracefulShutdownSeconds: int64(appConfig.HTTPGracefulShutdownSeconds),
+		ElasticsearchClient:     esClient,
 	}
 
 	server.ListenAndServe()
@@ -32,6 +31,7 @@ type HttpServer struct {
 	Logger                  logger.Logger
 	Port                    string
 	GracefulShutdownSeconds int64
+	ElasticsearchClient     elasticsearchclient.ElasticSearchClient
 }
 
 func (h HttpServer) ListenAndServe() {
