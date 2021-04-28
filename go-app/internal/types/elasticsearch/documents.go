@@ -1,7 +1,12 @@
 package elasticsearch
 
 type CreateDocumentResponse struct {
-	IndexID    string `json:"index,omitempty"`
+	IndexID    string `json:"_index,omitempty"`
+	DocumentID string `json:"_id,omitempty"`
+}
+
+type PatchDocumentResponse struct {
+	IndexID    string `json:"_index,omitempty"`
 	DocumentID string `json:"_id,omitempty"`
 }
 

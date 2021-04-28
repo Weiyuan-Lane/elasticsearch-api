@@ -40,6 +40,9 @@ func (h HttpServer) registerRoutes(
 	rtr.Methods("GET").
 		Path("/indices/{indexID}/documents/{documentID}").
 		Handler(documentsvc.ShowDocumentHTTPHandler(documentService))
+	rtr.Methods("PATCH").
+		Path("/indices/{indexID}/documents/{documentID}").
+		Handler(documentsvc.PatchDocumentHTTPHandler(documentService))
 
 	registerMiddlewares(rtr)
 	registerFallbackRoute(rtr)

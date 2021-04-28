@@ -65,8 +65,6 @@ func (s Service) RetrieveDocument(indexID, documentID string) (responses.Documen
 }
 
 func (s Service) CreateDocument(indexID, documentID string, document map[string]interface{}) (responses.CreatedID, error) {
-	documentWithID := document
-	documentWithID["id"] = documentID
 	createdDocRes, err := s.ElasticsearchClient.CreateDocument(indexID, documentID, document)
 
 	if err != nil {
@@ -76,6 +74,16 @@ func (s Service) CreateDocument(indexID, documentID string, document map[string]
 	return responses.CreatedID{
 		ID: createdDocRes.DocumentID,
 	}, nil
+}
+
+func (s Service) PatchDocument(indexID, documentID string, document map[string]interface{}) error {
+	_, err := s.ElasticsearchClient.PatchDocument(indexID, documentID, document)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s Service) hydrateDocument(document elasticsearch.Document) responses.Document {

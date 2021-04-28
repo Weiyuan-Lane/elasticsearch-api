@@ -3,6 +3,7 @@ package httprequest
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	apperrors "github.com/weiyuan-lane/elasticsearch-api/go-app/internal/utils/errors"
@@ -153,6 +154,8 @@ func invokeJSONRequest(
 
 	statusCode := res.StatusCode
 	if statusCode >= 400 && statusCode <= 599 {
+		fmt.Println(url, method, body, res.StatusCode)
+		fmt.Println(res.Body)
 		if errorTarget != nil {
 			_ = json.NewDecoder(res.Body).Decode(errorTarget)
 		}

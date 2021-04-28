@@ -135,3 +135,37 @@ func ListDocumentHTTPHandler(s Service) http.Handler {
 		apperrors.MakeGokitHTTPErrorEncoder(),
 	)
 }
+
+func PatchDocumentHTTPHandler(s Service) http.Handler {
+	decoder := func(_ context.Context, r *http.Request) (interface{}, error) {
+		vars := mux.Vars(r)
+		indexID := vars["indexID"]
+		documentID := vars["documentID"]
+
+		jsonBodyDecoder := json.NewDecoder(r.Body)
+		requestBody := requestbodies.PatchDocumentBody{}
+		err := jsonBodyDecoder.Decode(&requestBody)
+		if err != nil {
+			return nil, err
+		}
+
+		return patchDocumentRequest{
+			IndexID:    indexID,
+			DocumentID: documentID,
+			Document:   requestBody,
+		}, nil
+	}
+
+	encoder := func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(http.StatusNoContent)
+		return json.NewEncoder(w).Encode("{}")
+	}
+
+	return kithttp.NewServer(
+		makePatchDocumentEndpoint(s),
+		decoder,
+		encoder,
+		apperrors.MakeGokitHTTPErrorEncoder(),
+	)
+}

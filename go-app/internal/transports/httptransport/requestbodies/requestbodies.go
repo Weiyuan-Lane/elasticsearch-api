@@ -6,6 +6,8 @@ type CreateIndexBody struct {
 
 type CreateDocumentBody map[string]interface{}
 
+type PatchDocumentBody map[string]interface{}
+
 type SearchDocumentBody struct {
 	MatchMap       map[string]string `json:"match,omitempty"`
 	SearchPropList []string          `json:"search_fields,omitempty"`

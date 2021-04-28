@@ -13,6 +13,9 @@ var (
 	luceneEscapeCharRegex = regexp.MustCompile(`(\&|\||\!|\(|\)|\{|\}|\[|\]|\^|\"|\~|\*|\?|\:)`)
 )
 
+type SortField struct {
+}
+
 func (e ElasticSearchClient) ListDocuments(
 	indexID string,
 	page int,
@@ -64,17 +67,49 @@ func (e ElasticSearchClient) CreateDocument(indexID string, documentID string, d
 	response := elasticsearchtypes.CreateDocumentResponse{}
 	errResponse := elasticsearchtypes.ErrorResponse{}
 
+	documentWithID := document
+	documentWithID["id"] = documentID
+
 	_, err := httprequest.PostJSON(
 		url,
 		map[string]string{},
 		map[string]string{},
-		document,
+		documentWithID,
 		&response,
 		&errResponse,
 	)
 
 	if err != nil {
 		return elasticsearchtypes.CreateDocumentResponse{}, err
+	}
+
+	return response, nil
+}
+
+func (e ElasticSearchClient) PatchDocument(indexID string, documentID string, document map[string]interface{}) (elasticsearchtypes.PatchDocumentResponse, error) {
+	url := fmt.Sprintf(patchDocumentPathTemplate, e.hostWithPort, indexID, documentID)
+	response := elasticsearchtypes.PatchDocumentResponse{}
+
+	parsedDocument := document
+	if _, ok := parsedDocument["id"]; ok {
+		delete(parsedDocument, "id")
+	}
+
+	documentBody := map[string]interface{}{
+		"doc": parsedDocument,
+	}
+
+	_, err := httprequest.PostJSON(
+		url,
+		map[string]string{},
+		map[string]string{},
+		documentBody,
+		&response,
+		nil,
+	)
+
+	if err != nil {
+		return elasticsearchtypes.PatchDocumentResponse{}, err
 	}
 
 	return response, nil
@@ -117,8 +152,7 @@ func (e ElasticSearchClient) makeQueryMap(
 
 	// For getting match conditions
 	if len(matchMap) != 0 {
-		for key, matchVal := range matchMap {
-			matchKey := fmt.Sprintf("%s.keyword", key)
+		for matchKey, matchVal := range matchMap {
 			currCondition := map[string]map[string]string{
 				"term": {
 					matchKey: matchVal,
@@ -133,8 +167,7 @@ func (e ElasticSearchClient) makeQueryMap(
 	if len(searchPropList) != 0 && searchVal != "" {
 		escapedSearchVal := fmt.Sprintf("*%s*", e.escapeQueryString(searchVal))
 
-		for _, prop := range searchPropList {
-			searchKey := fmt.Sprintf("%s.keyword", prop)
+		for _, searchKey := range searchPropList {
 			currCondition := map[string]map[string]string{
 				"wildcard": {
 					searchKey: escapedSearchVal,
@@ -171,19 +204,18 @@ func (e ElasticSearchClient) makeQueryMap(
 
 func (e ElasticSearchClient) makeSortConditions(
 	sortList [][2]string,
-) []map[string]map[string]string {
+) []map[string]map[string]interface{} {
 
 	if len(sortList) == 0 {
 		return nil
 	}
 
-	sortConditions := make([]map[string]map[string]string, len(sortList))
+	sortConditions := make([]map[string]map[string]interface{}, len(sortList))
 	for i, pair := range sortList {
-		key, sortOrder := pair[0], pair[1]
-		sortKey := fmt.Sprintf("%s.keyword", key)
+		sortKey, sortOrder := pair[0], pair[1]
 
-		sortConditions[i] = map[string]map[string]string{
-			sortKey: map[string]string{
+		sortConditions[i] = map[string]map[string]interface{}{
+			sortKey: {
 				"order": sortOrder,
 			},
 		}

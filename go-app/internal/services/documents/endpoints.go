@@ -49,6 +49,26 @@ func makeCreateDocumentEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
+type patchDocumentRequest struct {
+	IndexID    string
+	DocumentID string
+	Document   map[string]interface{}
+}
+
+type patchDocumentResponse struct{}
+
+func makePatchDocumentEndpoint(s Service) endpoint.Endpoint {
+	return func(_ context.Context, request interface{}) (response interface{}, err error) {
+		assertedRequest := request.(patchDocumentRequest)
+		err = s.PatchDocument(
+			assertedRequest.IndexID,
+			assertedRequest.DocumentID,
+			assertedRequest.Document,
+		)
+		return patchDocumentResponse{}, err
+	}
+}
+
 type listDocumentRequest struct {
 	IndexID        string
 	Page           int
