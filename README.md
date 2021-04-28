@@ -25,3 +25,8 @@ To shell into the API server instance
 ```
 docker exec -it elasticsearch-api sh
 ```
+
+## TODO
+
+- Redis caching
+- Documentation

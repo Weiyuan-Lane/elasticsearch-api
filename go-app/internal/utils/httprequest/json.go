@@ -1,7 +1,9 @@
 package httprequest
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	apperrors "github.com/weiyuan-lane/elasticsearch-api/go-app/internal/utils/errors"
@@ -9,6 +11,7 @@ import (
 
 const (
 	getMethodName  string = "GET"
+	postMethodName string = "POST"
 	putMethodName  string = "PUT"
 	headMethodName string = "HEAD"
 )
@@ -17,7 +20,9 @@ func GetJSON(
 	url string,
 	queryParams map[string]string,
 	headers map[string]string,
+	body interface{},
 	target interface{},
+	errorTarget interface{},
 ) (int, error) {
 
 	statusCode, err := invokeJSONRequest(
@@ -25,7 +30,31 @@ func GetJSON(
 		getMethodName,
 		queryParams,
 		headers,
+		body,
 		target,
+		errorTarget,
+	)
+
+	return statusCode, err
+}
+
+func PostJSON(
+	url string,
+	queryParams map[string]string,
+	headers map[string]string,
+	body interface{},
+	target interface{},
+	errorTarget interface{},
+) (int, error) {
+
+	statusCode, err := invokeJSONRequest(
+		url,
+		postMethodName,
+		queryParams,
+		headers,
+		body,
+		target,
+		errorTarget,
 	)
 
 	return statusCode, err
@@ -35,7 +64,9 @@ func PutJSON(
 	url string,
 	queryParams map[string]string,
 	headers map[string]string,
+	body interface{},
 	target interface{},
+	errorTarget interface{},
 ) (int, error) {
 
 	statusCode, err := invokeJSONRequest(
@@ -43,7 +74,9 @@ func PutJSON(
 		putMethodName,
 		queryParams,
 		headers,
+		body,
 		target,
+		errorTarget,
 	)
 
 	return statusCode, err
@@ -53,7 +86,9 @@ func HeadJSON(
 	url string,
 	queryParams map[string]string,
 	headers map[string]string,
+	body interface{},
 	target interface{},
+	errorTarget interface{},
 ) (int, error) {
 
 	statusCode, err := invokeJSONRequest(
@@ -61,7 +96,9 @@ func HeadJSON(
 		headMethodName,
 		queryParams,
 		headers,
+		body,
 		target,
+		errorTarget,
 	)
 
 	return statusCode, err
@@ -72,11 +109,28 @@ func invokeJSONRequest(
 	method string,
 	queryParams map[string]string,
 	headers map[string]string,
+	body interface{},
 	target interface{},
+	errorTarget interface{},
 ) (int, error) {
 
 	client := &http.Client{}
-	req, err := http.NewRequest(method, url, nil)
+	var req *http.Request
+	var err error
+
+	var bodyBuffer *bytes.Buffer = nil
+	if body != nil {
+		byteArr, err := json.Marshal(body)
+		if err != nil {
+			return -1, apperrors.ErrUtilHttpRequestBodyMarshal
+		}
+
+		bodyBuffer = bytes.NewBuffer(byteArr)
+		req, err = http.NewRequest(method, url, bodyBuffer)
+	} else {
+		req, err = http.NewRequest(method, url, nil)
+	}
+
 	if err != nil {
 		return -1, apperrors.ErrUtilHttpRequestNewRequest
 	}
@@ -87,6 +141,7 @@ func invokeJSONRequest(
 	}
 	req.URL.RawQuery = reqQuery.Encode()
 
+	req.Header.Set("Content-Type", "application/json")
 	for headerKey, headerVal := range headers {
 		req.Header.Set(headerKey, headerVal)
 	}
@@ -98,7 +153,12 @@ func invokeJSONRequest(
 	defer res.Body.Close()
 
 	statusCode := res.StatusCode
-	if statusCode >= 500 && statusCode <= 599 {
+	if statusCode >= 400 && statusCode <= 599 {
+		fmt.Println(url, method, body, res.StatusCode)
+		fmt.Println(res.Body)
+		if errorTarget != nil {
+			_ = json.NewDecoder(res.Body).Decode(errorTarget)
+		}
 		return statusCode, apperrors.ErrUtilHttpRequestStatusCode
 	}
 

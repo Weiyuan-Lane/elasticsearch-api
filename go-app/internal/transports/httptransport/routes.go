@@ -9,6 +9,7 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 
+	documentsvc "github.com/weiyuan-lane/elasticsearch-api/go-app/internal/services/documents"
 	indexsvc "github.com/weiyuan-lane/elasticsearch-api/go-app/internal/services/indices"
 	"github.com/weiyuan-lane/elasticsearch-api/go-app/internal/transports/httptransport/responseheaders"
 	"github.com/weiyuan-lane/elasticsearch-api/go-app/internal/types/responses"
@@ -18,15 +19,24 @@ import (
 func (h HttpServer) registerRoutes(
 	rtr *mux.Router,
 	indexService indexsvc.Service,
+	documentService documentsvc.Service,
 ) {
 
+	// Indices Routes
+	rtr.Methods("POST").
+		Path("/indices").
+		Handler(indexsvc.CreateIndexHTTPHandler(indexService))
 	rtr.Methods("GET").
 		Path("/indices/{id}").
 		Handler(indexsvc.ShowIndexHTTPHandler(indexService))
 
+	// Documents Routes
 	rtr.Methods("POST").
-		Path("/indices").
-		Handler(indexsvc.CreateIndexHTTPHandler(indexService))
+		Path("/indices/{indexID}/documents").
+		Handler(documentsvc.CreateDocumentHTTPHandler(documentService))
+	rtr.Methods("GET").
+		Path("/indices/{indexID}/documents/{documentID}").
+		Handler(documentsvc.ShowDocumentHTTPHandler(documentService))
 
 	registerMiddlewares(rtr)
 	registerFallbackRoute(rtr)

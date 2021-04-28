@@ -16,7 +16,9 @@ func (e ElasticSearchClient) GetIndex(id string) (elasticsearchtypes.IndexMap, e
 		url,
 		map[string]string{},
 		map[string]string{},
+		nil,
 		&response,
+		nil,
 	)
 
 	return response, err
@@ -30,7 +32,9 @@ func (e ElasticSearchClient) CreateIndex(id string) (elasticsearchtypes.CreatedI
 		url,
 		map[string]string{},
 		map[string]string{},
+		nil,
 		&response,
+		nil,
 	)
 
 	return response, err
@@ -43,6 +47,8 @@ func (e ElasticSearchClient) IndexExists(id string) (bool, error) {
 		url,
 		map[string]string{},
 		map[string]string{},
+		nil,
+		nil,
 		nil,
 	)
 	if err != nil {
