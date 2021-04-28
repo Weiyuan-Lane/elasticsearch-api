@@ -48,3 +48,33 @@ func makeCreateDocumentEndpoint(s Service) endpoint.Endpoint {
 		return createDocumentResponse{res}, err
 	}
 }
+
+type listDocumentRequest struct {
+	IndexID        string
+	Page           int
+	PerPage        int
+	MatchMap       map[string]string
+	SearchPropList []string
+	SearchVal      string
+	InputSortList  [][2]string
+}
+
+type listDocumentResponse struct {
+	result responses.DocumentPage
+}
+
+func makeListDocumentEndpoint(s Service) endpoint.Endpoint {
+	return func(_ context.Context, request interface{}) (response interface{}, err error) {
+		assertedRequest := request.(listDocumentRequest)
+		res, err := s.ListDocument(
+			assertedRequest.IndexID,
+			assertedRequest.Page,
+			assertedRequest.PerPage,
+			assertedRequest.MatchMap,
+			assertedRequest.SearchPropList,
+			assertedRequest.SearchVal,
+			assertedRequest.InputSortList,
+		)
+		return listDocumentResponse{res}, err
+	}
+}

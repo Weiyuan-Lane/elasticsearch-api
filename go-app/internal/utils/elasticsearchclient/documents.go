@@ -15,6 +15,8 @@ var (
 
 func (e ElasticSearchClient) ListDocuments(
 	indexID string,
+	page int,
+	perPage int,
 	matchMap map[string]string,
 	searchPropList []string,
 	searchVal string,
@@ -22,7 +24,14 @@ func (e ElasticSearchClient) ListDocuments(
 ) (elasticsearchtypes.SearchDocumentResponse, error) {
 	url := fmt.Sprintf(documentSearchPathTemplate, e.hostWithPort, indexID)
 	response := elasticsearchtypes.SearchDocumentResponse{}
-	body := map[string]interface{}{}
+
+	offset := (page - 1) * perPage
+	limit := perPage
+
+	body := map[string]interface{}{
+		"from": offset,
+		"size": limit,
+	}
 
 	queryMap := e.makeQueryMap(matchMap, searchPropList, searchVal)
 	if queryMap != nil {
@@ -30,7 +39,7 @@ func (e ElasticSearchClient) ListDocuments(
 	}
 
 	sortConditions := e.makeSortConditions(inputSortList)
-	if queryMap != nil {
+	if len(sortConditions) > 0 {
 		body["sort"] = sortConditions
 	}
 
@@ -39,7 +48,7 @@ func (e ElasticSearchClient) ListDocuments(
 		map[string]string{},
 		map[string]string{},
 		body,
-		nil,
+		&response,
 		nil,
 	)
 

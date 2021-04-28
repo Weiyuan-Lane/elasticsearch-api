@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -77,6 +78,58 @@ func CreateDocumentHTTPHandler(s Service) http.Handler {
 
 	return kithttp.NewServer(
 		makeCreateDocumentEndpoint(s),
+		decoder,
+		encoder,
+		apperrors.MakeGokitHTTPErrorEncoder(),
+	)
+}
+
+func ListDocumentHTTPHandler(s Service) http.Handler {
+	decoder := func(_ context.Context, r *http.Request) (interface{}, error) {
+		vars := mux.Vars(r)
+		indexID := vars["indexID"]
+
+		queryValues := r.URL.Query()
+
+		pageStr := queryValues.Get("page")
+		page, err := strconv.Atoi(pageStr)
+		if err != nil {
+			page = 1
+		}
+
+		perPageStr := queryValues.Get("per_page")
+		perPage, err := strconv.Atoi(perPageStr)
+		if err != nil {
+			perPage = 10
+		}
+
+		jsonBodyDecoder := json.NewDecoder(r.Body)
+		requestBody := requestbodies.SearchDocumentBody{}
+		err = jsonBodyDecoder.Decode(&requestBody)
+		if err != nil {
+			return nil, err
+		}
+
+		return listDocumentRequest{
+			IndexID:        indexID,
+			Page:           page,
+			PerPage:        perPage,
+			MatchMap:       requestBody.MatchMap,
+			SearchPropList: requestBody.SearchPropList,
+			SearchVal:      requestBody.SearchVal,
+			InputSortList:  requestBody.InputSortList,
+		}, nil
+	}
+
+	encoder := func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+		assertedResponse := response.(listDocumentResponse)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		return json.NewEncoder(w).Encode(assertedResponse.result)
+	}
+
+	return kithttp.NewServer(
+		makeListDocumentEndpoint(s),
 		decoder,
 		encoder,
 		apperrors.MakeGokitHTTPErrorEncoder(),
