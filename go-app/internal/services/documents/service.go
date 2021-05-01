@@ -86,6 +86,16 @@ func (s Service) PatchDocument(indexID, documentID string, document map[string]i
 	return nil
 }
 
+func (s Service) DeleteDocument(indexID, documentID string) error {
+	err := s.ElasticsearchClient.DeleteDocument(indexID, documentID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s Service) hydrateDocument(document elasticsearch.Document) responses.Document {
 	return responses.Document(document.Source)
 }

@@ -15,7 +15,7 @@ info:
     ---
 
 servers:
-  - url: 'localhost:8080'
+  - url: 'http://localhost:8080'
     description: 'Localhost'
     
 tags:
@@ -151,6 +151,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/documentWithoutIDBody'
+      responses:
+        204:
+          description: No content
+
+    delete:
+      tags:
+        - "Documents"
+      description: >-
+        Delete document found from this index and document id.
+      parameters:
+        - $ref: '#/components/parameters/indexIdPathParam'
+        - $ref: '#/components/parameters/documentIdPathParam'
       responses:
         204:
           description: No content

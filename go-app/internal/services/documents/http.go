@@ -178,3 +178,29 @@ func PatchDocumentHTTPHandler(s Service) http.Handler {
 		apperrors.MakeGokitHTTPErrorEncoder(),
 	)
 }
+
+func DeleteDocumentHTTPHandler(s Service) http.Handler {
+	decoder := func(_ context.Context, r *http.Request) (interface{}, error) {
+		vars := mux.Vars(r)
+		indexID := vars["indexID"]
+		documentID := vars["documentID"]
+
+		return deleteDocumentRequest{
+			IndexID:    indexID,
+			DocumentID: documentID,
+		}, nil
+	}
+
+	encoder := func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(http.StatusNoContent)
+		return json.NewEncoder(w).Encode("{}")
+	}
+
+	return kithttp.NewServer(
+		makeDeleteDocumentEndpoint(s),
+		decoder,
+		encoder,
+		apperrors.MakeGokitHTTPErrorEncoder(),
+	)
+}

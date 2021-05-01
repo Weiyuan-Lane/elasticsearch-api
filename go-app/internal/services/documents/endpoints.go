@@ -69,6 +69,24 @@ func makePatchDocumentEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
+type deleteDocumentRequest struct {
+	IndexID    string
+	DocumentID string
+}
+
+type deleteDocumentResponse struct{}
+
+func makeDeleteDocumentEndpoint(s Service) endpoint.Endpoint {
+	return func(_ context.Context, request interface{}) (response interface{}, err error) {
+		assertedRequest := request.(deleteDocumentRequest)
+		err = s.DeleteDocument(
+			assertedRequest.IndexID,
+			assertedRequest.DocumentID,
+		)
+		return deleteDocumentResponse{}, err
+	}
+}
+
 type listDocumentRequest struct {
 	IndexID        string
 	Page           int

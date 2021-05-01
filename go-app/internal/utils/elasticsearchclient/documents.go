@@ -135,6 +135,25 @@ func (e ElasticSearchClient) RetrieveDocument(indexID string, documentID string)
 	return response, nil
 }
 
+func (e ElasticSearchClient) DeleteDocument(indexID string, documentID string) error {
+	url := fmt.Sprintf(documentSingularPathTemplate, e.hostWithPort, indexID, documentID)
+
+	_, err := httprequest.DeleteJSON(
+		url,
+		map[string]string{},
+		map[string]string{},
+		nil,
+		nil,
+		nil,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (e ElasticSearchClient) escapeQueryString(query string) string {
 	return luceneEscapeCharRegex.ReplaceAllString(query, `\$1`)
 }

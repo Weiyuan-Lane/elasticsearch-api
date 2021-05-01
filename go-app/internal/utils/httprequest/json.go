@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	getMethodName  string = "GET"
-	postMethodName string = "POST"
-	putMethodName  string = "PUT"
-	headMethodName string = "HEAD"
+	getMethodName    string = "GET"
+	postMethodName   string = "POST"
+	putMethodName    string = "PUT"
+	headMethodName   string = "HEAD"
+	deleteMethodName string = "DELETE"
 )
 
 func GetJSON(
@@ -71,6 +72,28 @@ func PutJSON(
 	statusCode, err := invokeJSONRequest(
 		url,
 		putMethodName,
+		queryParams,
+		headers,
+		body,
+		target,
+		errorTarget,
+	)
+
+	return statusCode, err
+}
+
+func DeleteJSON(
+	url string,
+	queryParams map[string]string,
+	headers map[string]string,
+	body interface{},
+	target interface{},
+	errorTarget interface{},
+) (int, error) {
+
+	statusCode, err := invokeJSONRequest(
+		url,
+		deleteMethodName,
 		queryParams,
 		headers,
 		body,
