@@ -175,7 +175,7 @@ func invokeJSONRequest(
 	defer res.Body.Close()
 
 	statusCode := res.StatusCode
-	if statusCode >= 400 && statusCode <= 599 {
+	if statusCode >= 500 && statusCode <= 599 {
 		if errorTarget != nil {
 			_ = json.NewDecoder(res.Body).Decode(errorTarget)
 		}

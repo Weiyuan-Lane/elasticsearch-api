@@ -26,7 +26,17 @@ To shell into the API server instance
 docker exec -it elasticsearch-api sh
 ```
 
+## Seeding elasticsearch db
+
+Run the following to seed the `user` index with 100 distinct results for testing
+```
+./tools/seeds/seed.sh
+```
+
+## Documentation
+
+View the documentation at [https://weiyuan-lane.github.io/elasticsearch-api](https://weiyuan-lane.github.io/elasticsearch-api/)
+
 ## TODO
 
 - Redis caching
-- Documentation

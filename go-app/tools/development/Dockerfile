@@ -3,7 +3,8 @@ FROM golang:1.16.3-alpine
 ENV APP_DIR=/usr/src/app
 WORKDIR $APP_DIR
 
-RUN cd / && \
+RUN apk add --no-cache curl jq && \
+    cd / && \
     go get github.com/githubnemo/CompileDaemon && \
     mv /go /localgo
 
