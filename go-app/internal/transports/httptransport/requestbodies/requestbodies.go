@@ -12,5 +12,10 @@ type SearchDocumentBody struct {
 	MatchMap       map[string]string `json:"match,omitempty"`
 	SearchPropList []string          `json:"search_fields,omitempty"`
 	SearchVal      string            `json:"search_value,omitempty"`
-	InputSortList  [][2]string       `json:"sort,omitempty"`
+	InputSortList  []InputSortField  `json:"sort,omitempty"`
+}
+
+type InputSortField struct {
+	Property string `json:"property,omitempty"`
+	Order    string `json:"order,omitempty"`
 }

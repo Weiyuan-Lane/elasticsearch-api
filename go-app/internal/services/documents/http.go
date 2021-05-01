@@ -110,6 +110,15 @@ func ListDocumentHTTPHandler(s Service) http.Handler {
 			return nil, err
 		}
 
+		parsedInputSortFields := [][2]string{}
+		for _, inputSortField := range requestBody.InputSortList {
+			if inputSortField.Order != "" && inputSortField.Property != "" {
+				parsedInputSortFields = append(parsedInputSortFields, [2]string{
+					inputSortField.Property, inputSortField.Order,
+				})
+			}
+		}
+
 		return listDocumentRequest{
 			IndexID:        indexID,
 			Page:           page,
@@ -117,7 +126,7 @@ func ListDocumentHTTPHandler(s Service) http.Handler {
 			MatchMap:       requestBody.MatchMap,
 			SearchPropList: requestBody.SearchPropList,
 			SearchVal:      requestBody.SearchVal,
-			InputSortList:  requestBody.InputSortList,
+			InputSortList:  parsedInputSortFields,
 		}, nil
 	}
 

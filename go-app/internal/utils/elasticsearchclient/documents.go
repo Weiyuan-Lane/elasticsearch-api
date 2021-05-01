@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	luceneEscapeCharRegex = regexp.MustCompile(`(\&|\||\!|\(|\)|\{|\}|\[|\]|\^|\"|\~|\*|\?|\:)`)
+	luceneEscapeCharRegex = regexp.MustCompile(`(\&|\-|\||\!|\(|\)|\{|\}|\[|\]|\^|\"|\~|\*|\?|\:)`)
 )
 
 type SortField struct {

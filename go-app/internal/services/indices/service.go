@@ -62,6 +62,7 @@ func (s Service) CreateIndex(id string) (responses.CreatedID, error) {
 func (s Service) hydrateIndex(id string, indexMap elasticsearch.IndexMap) responses.Index {
 	if val, ok := indexMap[id]; ok {
 		return responses.Index{
+			ID:       id,
 			Aliases:  val.Aliases,
 			Mappings: val.Mappings,
 			Settings: val.Settings,
