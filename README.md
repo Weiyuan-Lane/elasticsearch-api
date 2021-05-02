@@ -1,8 +1,9 @@
-# Fuzzy Search API Engine
+# API Wrapper for Elasticsearch
 
-This repository is split to two components, `go-app` - a gokit inspired application, and `elasticsearch`
+This repository is split to two components, `go-app` - a gokit inspired application, and `swagger-ui`, for the documentation
 
 This [document](https://logz.io/blog/elasticsearch-api/) is really good to get started with integrating the API
+
 ### go-app
 
 For this directory, the project layout is inspired from [here](https://github.com/golang-standards/project-layout)
