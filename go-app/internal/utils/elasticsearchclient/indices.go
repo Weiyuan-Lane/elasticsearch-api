@@ -27,7 +27,7 @@ func (e ElasticSearchClient) GetIndex(id string) (elasticsearchtypes.IndexMap, e
 func (e ElasticSearchClient) CreateIndex(id string) (elasticsearchtypes.CreatedIndexResponse, error) {
 	url := fmt.Sprintf(indexSingularPathTemplate, e.hostWithPort, id)
 	response := elasticsearchtypes.CreatedIndexResponse{}
-	fmt.Println(url)
+
 	_, err := httprequest.PutJSON(
 		url,
 		map[string]string{},

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -85,6 +86,87 @@ func CreateDocumentHTTPHandler(s Service) http.Handler {
 }
 
 func ListDocumentHTTPHandler(s Service) http.Handler {
+	decoder := func(_ context.Context, r *http.Request) (interface{}, error) {
+		vars := mux.Vars(r)
+		indexID := vars["indexID"]
+
+		queryValues := r.URL.Query()
+
+		pageStr := queryValues.Get("page")
+		page, err := strconv.Atoi(pageStr)
+		if err != nil {
+			page = 1
+		}
+
+		perPageStr := queryValues.Get("per_page")
+		perPage, err := strconv.Atoi(perPageStr)
+		if err != nil {
+			perPage = 10
+		}
+
+		matchMap := map[string]string{}
+		matchKeysStr := queryValues.Get("match_keys")
+		matchValuesStr := queryValues.Get("match_values")
+
+		if matchKeysStr != "" && matchValuesStr != "" {
+			parsedMatchKeysList := strings.Split(matchKeysStr, ",")
+			parsedMatchValuesList := strings.Split(matchValuesStr, ",")
+
+			if len(parsedMatchValuesList) == len(parsedMatchKeysList) {
+				for i, key := range parsedMatchKeysList {
+					value := parsedMatchValuesList[i]
+					matchMap[key] = value
+				}
+			}
+		}
+
+		searchPropListStr := queryValues.Get("search_fields")
+		searchPropList := strings.Split(searchPropListStr, ",")
+		searchVal := queryValues.Get("search_value")
+
+		inputSortFields := [][2]string{}
+		sortKeysStr := queryValues.Get("sort_keys")
+		sortOrdersStr := queryValues.Get("sort_orders")
+
+		if sortKeysStr != "" && sortOrdersStr != "" {
+			sortKeysList := strings.Split(sortKeysStr, ",")
+			sortOrdersList := strings.Split(sortOrdersStr, ",")
+
+			if len(sortKeysList) == len(sortOrdersList) {
+				for i, key := range sortKeysList {
+					order := sortOrdersList[i]
+					inputSortFields = append(inputSortFields, [2]string{key, order})
+				}
+			}
+		}
+
+		return listDocumentRequest{
+			IndexID:        indexID,
+			Page:           page,
+			PerPage:        perPage,
+			MatchMap:       matchMap,
+			SearchPropList: searchPropList,
+			SearchVal:      searchVal,
+			InputSortList:  inputSortFields,
+		}, nil
+	}
+
+	encoder := func(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+		assertedResponse := response.(listDocumentResponse)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		return json.NewEncoder(w).Encode(assertedResponse.result)
+	}
+
+	return kithttp.NewServer(
+		makeListDocumentEndpoint(s),
+		decoder,
+		encoder,
+		apperrors.MakeGokitHTTPErrorEncoder(),
+	)
+}
+
+func SearchDocumentHTTPHandler(s Service) http.Handler {
 	decoder := func(_ context.Context, r *http.Request) (interface{}, error) {
 		vars := mux.Vars(r)
 		indexID := vars["indexID"]

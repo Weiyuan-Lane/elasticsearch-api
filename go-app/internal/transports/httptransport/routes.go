@@ -35,6 +35,9 @@ func (h HttpServer) registerRoutes(
 		Path("/indices/{indexID}/documents").
 		Handler(documentsvc.ListDocumentHTTPHandler(documentService))
 	rtr.Methods("POST").
+		Path("/indices/{indexID}/documents/search").
+		Handler(documentsvc.SearchDocumentHTTPHandler(documentService))
+	rtr.Methods("POST").
 		Path("/indices/{indexID}/documents").
 		Handler(documentsvc.CreateDocumentHTTPHandler(documentService))
 	rtr.Methods("GET").
