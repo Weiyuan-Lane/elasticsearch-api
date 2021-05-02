@@ -1,0 +1,395 @@
+openapi: "3.0.0"
+
+info:
+  version: 1.0.0
+  title: Elasticsearch Wrapper API
+  
+  description: |
+    ---
+    This API documentation contains a full description of all the API endpoints supported in running the go application. They implement a easy-to-understand REST-ful interface for other services for creating and updating documents, and also a filter+search+sort functionality when retrieving for results. 
+    
+    Two resources are supported:
+      - Indices, root level resource.
+      - Documents, child relation to indices. When querying for results on indices, we use the documents API endpoints.
+    
+    ---
+
+servers:
+  - url: 'http://localhost:8080'
+    description: 'Localhost'
+    
+tags:
+  - name: "Indices"
+    externalDocs:
+      description: Repository
+      url: 'https://github.com/Weiyuan-Lane/elasticsearch-api'
+
+  - name: "Documents"
+    externalDocs:
+      description: Repository
+      url: 'https://github.com/Weiyuan-Lane/elasticsearch-api'
+  
+paths:
+  '/indices':
+    post:
+      tags:
+        - "Indices"
+      description: >-
+        Create a new index.
+      requestBody:
+        description: "Request body for creating a new index"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createIndexReqBody'
+      responses:
+        201:
+          description: Id info of index 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createdIdResBody'
+
+  '/indices/{index_id}':
+    get:
+      tags:
+        - "Indices"
+      description: >-
+        Retrieve information of an index.
+      parameters:
+        - $ref: '#/components/parameters/indexIdPathParam'
+      responses:
+        200:
+          description: Retrieved index information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/indexResBody'
+                
+  '/indices/{index_id}/documents':
+    get:
+      tags:
+        - "Documents"
+      description: >-
+        Retrieve documents from the target index. There are options to filter (full match), search (partial match), and sort the results
+      parameters:
+        - $ref: '#/components/parameters/indexIdPathParam'
+        - $ref: '#/components/parameters/pageQueryParam'
+        - $ref: '#/components/parameters/perPageQueryParam'
+        - $ref: '#/components/parameters/matchKeysQueryParam'
+        - $ref: '#/components/parameters/matchValuesQueryParam'
+        - $ref: '#/components/parameters/searchFieldsQueryParam'
+        - $ref: '#/components/parameters/searchValueQueryParam'
+        - $ref: '#/components/parameters/sortKeysQueryParam'
+        - $ref: '#/components/parameters/sortOrdersQueryParam'
+      responses:
+        200:
+          description: A page of document results. Id field is always returned for each document in \"results\". Other fields depend on the document entity itself.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/documentPageResBody'
+                
+    post:
+      tags:
+        - "Documents"
+      description: >-
+        Create a new document under the target index.
+      parameters:
+        - $ref: '#/components/parameters/indexIdPathParam'
+      requestBody:
+        description: "Request body for creating a new document. Only the id field is mandatory. Other fields can be added as required for future queries."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/documentBody'
+      responses:
+        201:
+          description: Id info of document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createdIdResBody'
+    
+  '/indices/{index_id}/documents/search':
+    post:
+      tags:
+        - "Documents"
+      description: >-
+        An alternative endpoint to retrieve documents from the target index. There are options to filter (full match), search (partial match), and sort the results
+      parameters:
+        - $ref: '#/components/parameters/indexIdPathParam'
+        - $ref: '#/components/parameters/pageQueryParam'
+        - $ref: '#/components/parameters/perPageQueryParam'
+      requestBody:
+        description: >-
+          Options to format the results (append string fields with "keyword")
+           - `match` is an object of fields, with the criterion that must be matched for all results to be filtered and returned
+           - `search_value` is a string value for using with `search_fields`.
+           - `search_fields` is an array of all fields to be searched on. At least one field is required for the entity to be returned.
+           - `sort` is an array of fields with intended sort order of the results.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/listDocumentsReqBody'
+      responses:
+        200:
+          description: A page of document results. Id field is always returned for each document in \"results\". Other fields depend on the document entity itself.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/documentPageResBody'
+  
+  '/indices/{index_id}/documents/{document_id}':
+    get:
+      tags:
+        - "Documents"
+      description: >-
+        Retrieve information of a document.
+      parameters:
+        - $ref: '#/components/parameters/indexIdPathParam'
+        - $ref: '#/components/parameters/documentIdPathParam'
+      responses:
+        200:
+          description: Retrieved document entity. Id field is always returned for each document in \"results\". Other fields depend on the document entity itself.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/documentBody'
+
+    patch:
+      tags:
+        - "Documents"
+      description: >-
+        Retrieve information of a document.
+      parameters:
+        - $ref: '#/components/parameters/indexIdPathParam'
+        - $ref: '#/components/parameters/documentIdPathParam'
+      requestBody:
+        description: "Request body for updating a present document. The id field will be ignored. Other fields will be updated to current document."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/documentWithoutIDBody'
+      responses:
+        204:
+          description: No content
+
+    delete:
+      tags:
+        - "Documents"
+      description: >-
+        Delete document found from this index and document id.
+      parameters:
+        - $ref: '#/components/parameters/indexIdPathParam'
+        - $ref: '#/components/parameters/documentIdPathParam'
+      responses:
+        204:
+          description: No content
+
+components:
+  schemas:
+    # Response schemas
+    pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+    
+    createdIdResBody:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'id'
+          
+    indexResBody:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'id'
+        aliases:
+          type: object
+        mappings:
+          type: object
+        settings:
+          type: object
+          example:
+            index:
+              creation_date: "seconds since epoch string"
+              number_of_replicas: "numerical string"
+              number_of_shards: "numerical string"
+          
+    documentPageResBody:
+      type: object
+      properties:
+        page_stats:
+          $ref: '#/components/schemas/pagination'
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/documentBody'
+    
+    # Request schemas
+    createIndexReqBody:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'id'
+        
+    listDocumentsReqBody:
+      type: object
+      properties:
+        match:
+          type: object
+          example:
+            "project_id.keyword": "1p"
+        search_fields:
+          type: array
+          items:
+            type: string
+          example: ['first_name', 'last_name']
+        search_value:
+          type: string
+          example: 'jon'
+        sort:
+          type: array
+          items:
+            type: object
+            properties:
+              property:
+                type: string
+                example: 'created_at'
+              order:
+                type: string
+                enum:
+                  - desc
+                  - asc
+        
+    # Both Request and Response schemas
+    documentWithoutIDBody:
+      type: object
+      properties:
+        first_name: 
+          type: string
+          example: 'Jon'
+        last_name: 
+          type: string
+          example: 'Snow'
+        project_id: 
+          type: string
+          example: '1p'
+        created_at:
+          type: string
+          example: "date string"
+    
+    documentBody:
+      allOf:
+        - $ref: '#/components/schemas/documentWithoutIDBody'
+        - type: object
+          properties:
+            id: 
+              type: string
+              example: "id"
+
+  parameters:
+    # Path Params
+    indexIdPathParam:
+      name: index_id
+      in: path
+      required: true
+      description: Index ID
+      schema:
+        type: string
+        
+    documentIdPathParam:
+      name: document_id
+      in: path
+      required: true
+      description: Document ID
+      schema:
+        type: string
+        
+    # Query Params
+    pageQueryParam:
+      name: page
+      in: query
+      description: Must be bigger or equal to 1.
+      schema:
+        type: number
+        minimum: 1
+        default: 1
+    
+    perPageQueryParam:
+      name: per_page
+      in: query
+      description: Must be between 1 to 50.
+      schema:
+        type: number
+        minimum: 1
+        maximum: 50
+        default: 10
+        
+    matchKeysQueryParam:
+      name: match_keys
+      in: query
+      description: A CSV string of properties to match. The entities in this CSV string should match the length of `match_values`
+      schema:
+        type: string
+        example: 'project_id.keyword,organization_id.keyword'
+        
+    matchValuesQueryParam:
+      name: match_values
+      in: query
+      description: A CSV string of values to match. The entities in this CSV string should match the length of `match_keys` 
+      schema:
+        type: string
+        example: '1p,1o'
+        
+    searchFieldsQueryParam:
+      name: search_fields
+      in: query
+      description: A CSV string of properties to search. To be paired in searching for value in `search_value`
+      schema:
+        type: string
+        example: 'first_name,last_name'
+        
+    searchValueQueryParam:
+      name: search_value
+      in: query
+      description: A plaintext string for searching. To be paired in searching for partial matched values in `search_fields`
+      schema:
+        type: string
+        example: 'jon snow'
+        
+    sortKeysQueryParam:
+      name: sort_keys
+      in: query
+      description: A CSV string of properties to sort. The entities in this CSV string should match the length of `sort_orders`
+      schema:
+        type: string
+        example: 'age,first_name.keyword'
+        
+    sortOrdersQueryParam:
+      name: sort_orders
+      in: query
+      description: A CSV string of values to sort. The entities in this CSV string should match the length of `sort_keys`. Valid values are `asc` and `desc`.
+      schema:
+        type: string
+        example: 'asc,desc'
+    
+
+  links: {}
+  callbacks: {}
+  securitySchemes: {}
+security: []
